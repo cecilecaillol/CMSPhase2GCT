@@ -4,6 +4,8 @@
 #include <utility>
 
 #include "../../../../include/objects.h"
+#include "tauFunctions.h"
+
 using namespace std;
 using namespace algo;
 
@@ -103,8 +105,48 @@ void algo_top(hls::stream<axiword576> link_in[N_INPUT_LINKS], hls::stream<axiwor
     towersInNegEta[ilink] = unpackInputLink(link_in[iNegEta]);
   }
 
-
   // Step 2: Tau Algo goes here
+
+  CaloTau taus[MAX_TAUS];
+#pragma HLS ARRAY_PARTITION variable=taus  complete dim=0
+  for(int n=0; n<MAX_TAUS; n++){
+#pragma LOOP UNROLL
+#pragma HLS latency min=1
+    taus[n]=CaloTau(0,0,0,0,0);
+  }
+
+  for(int tphi=0; tphi<TOWERS_IN_PHI; tphi++){
+#pragma LOOP UNROLL
+#pragma HLS latency min=1
+    for(int teta=0; teta<TOWERS_IN_ETA/2; teta++){
+#pragma LOOP UNROLL
+#pragma HLS latency min=1
+        if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[0].tau_et() ){
+	   taus[2]=taus[1];
+           taus[1]=taus[0];
+	   taus[0]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+        }
+        else if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[1].tau_et() ){
+           taus[2]=taus[1];
+           taus[1]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+        }
+        else if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[2].tau_et() ){
+           taus[2]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+        }
+     }
+  }
+
+  if (taus[0].peak_eta()>=0){
+    taus[0]=CaloTau(get_3x5_et(towersInPosEta, taus[0]), taus[0].peak_phi(), taus[0].peak_eta(), get_7x7_et(towersInPosEta, taus[0]), 0);
+  }
+
+  if (taus[1].peak_eta()>=0){
+    taus[1]=CaloTau(get_3x5_et(towersInPosEta, taus[1]), taus[1].peak_phi(), taus[1].peak_eta(), get_7x7_et(towersInPosEta, taus[1]), 0);
+  }
+
+  if (taus[2].peak_eta()>=0){
+    taus[2]=CaloTau(get_3x5_et(towersInPosEta, taus[2]), taus[2].peak_phi(), taus[2].peak_eta(), get_7x7_et(towersInPosEta, taus[2]), 0);
+  }
 
 
   // Step 3: Pack the outputs
