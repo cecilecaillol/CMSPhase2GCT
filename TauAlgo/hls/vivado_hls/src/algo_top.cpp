@@ -115,27 +115,32 @@ void algo_top(hls::stream<axiword576> link_in[N_INPUT_LINKS], hls::stream<axiwor
     taus[n]=CaloTau(0,0,0,0,0);
   }
 
+  // First save highest seed towers with Et and position
   for(int tphi=0; tphi<TOWERS_IN_PHI; tphi++){
 #pragma LOOP UNROLL
 #pragma HLS latency min=1
     for(int teta=0; teta<TOWERS_IN_ETA/2; teta++){
 #pragma LOOP UNROLL
 #pragma HLS latency min=1
-        if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[0].tau_et() ){
-	   taus[2]=taus[1];
-           taus[1]=taus[0];
-	   taus[0]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
-        }
-        else if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[1].tau_et() ){
-           taus[2]=taus[1];
-           taus[1]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
-        }
-        else if(towersInPosEta[tphi].towers[teta].tower_et() != 0 && towersInPosEta[tphi].towers[teta].tower_et()>taus[2].tau_et() ){
-           taus[2]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
-        }
+        if(towersInPosEta[tphi].towers[teta].tower_et() > 0 && is_gt_3x5neighbors(towersInPosEta,tphi,teta)){ // only take the tower that has the largest energy of the 3x5 cluster
+	   if (towersInPosEta[tphi].towers[teta].tower_et()>taus[0].tau_et() ){
+	      taus[2]=taus[1];
+              taus[1]=taus[0];
+	      taus[0]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+           }
+           else if(towersInPosEta[tphi].towers[teta].tower_et()>taus[1].tau_et() ){
+              taus[2]=taus[1];
+              taus[1]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+           }
+           else if(towersInPosEta[tphi].towers[teta].tower_et()>taus[2].tau_et() ){
+              taus[2]=CaloTau(towersInPosEta[tphi].towers[teta].tower_et(),tphi,teta,0,0);
+           }
+	   teta++; // No need to check the neighbor tower because it has less energy and will be merged in the same cluster
+	}
      }
   }
 
+  // For each seed compute the cluster energy (3x5) and the isolation (7x7)
   if (taus[0].peak_eta()>=0){
     taus[0]=CaloTau(get_3x5_et(towersInPosEta, taus[0]), taus[0].peak_phi(), taus[0].peak_eta(), get_7x7_et(towersInPosEta, taus[0]), 0);
   }

@@ -10,6 +10,36 @@
 
 using namespace std;
 
+ap_uint<1> is_gt_3x5neighbors(TowersInEta stitchedInPhi[TOWERS_IN_PHI], ap_uint<5> iphi, ap_uint<5> ieta){
+#pragma HLS PIPELINE II=6
+  if (ieta<0 or ieta>=TOWERS_IN_ETA) return 0;
+  ap_uint<13> central_tower_et = stitchedInPhi[iphi].towers[ieta].tower_et();
+  if (iphi-2>=0){ 
+     if (stitchedInPhi[iphi-2].towers[ieta].tower_et() > central_tower_et) return 0;
+     if (ieta-1>=0 && stitchedInPhi[iphi-2].towers[ieta-1].tower_et() > central_tower_et) return 0;
+     if (ieta+1<=TOWERS_IN_ETA<2 && stitchedInPhi[iphi-2].towers[ieta+1].tower_et() > central_tower_et) return 0;
+  }
+  if (iphi-1>=0){
+     if (stitchedInPhi[iphi-1].towers[ieta].tower_et() > central_tower_et) return 0;
+     if (ieta-1>=0 && stitchedInPhi[iphi-1].towers[ieta-1].tower_et() > central_tower_et) return 0;
+     if (ieta+1<=TOWERS_IN_ETA<2 && stitchedInPhi[iphi-1].towers[ieta+1].tower_et() > central_tower_et) return 0;
+  }
+
+  if (ieta-1>=0 && stitchedInPhi[iphi].towers[ieta-1].tower_et() > central_tower_et) return 0;
+  if (ieta+1<=TOWERS_IN_ETA<2 && stitchedInPhi[iphi].towers[ieta+1].tower_et() > central_tower_et) return 0;
+
+  if (iphi+1<=TOWERS_IN_PHI){
+     if (stitchedInPhi[iphi+1].towers[ieta].tower_et() > central_tower_et) return 0;
+     if (ieta-1>=0 && stitchedInPhi[iphi+1].towers[ieta-1].tower_et() > central_tower_et) return 0;
+     if (ieta+1<=TOWERS_IN_ETA<2 && stitchedInPhi[iphi+1].towers[ieta+1].tower_et() > central_tower_et) return 0;
+  }
+  if (iphi+2<=TOWERS_IN_PHI){
+     if (stitchedInPhi[iphi+2].towers[ieta].tower_et() > central_tower_et) return 0;
+     if (ieta-1>=0 && stitchedInPhi[iphi+2].towers[ieta-1].tower_et() > central_tower_et) return 0;
+     if (ieta+1<=TOWERS_IN_ETA<2 && stitchedInPhi[iphi+2].towers[ieta+1].tower_et() > central_tower_et) return 0;
+  }
+  return 1;
+}
 
 ap_uint<13> sum_five_phi(TowersInEta stitchedInPhi[TOWERS_IN_PHI], ap_uint<5> iphi, ap_uint<5> ieta) {
 #pragma HLS PIPELINE II=6
