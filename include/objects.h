@@ -14,29 +14,29 @@ class CaloTau{
   public:
     CaloTau() : data(0) {;}
 
-    CaloTau(ap_uint<10> tau_et, ap_uint<5> peak_phi, ap_uint<5> peak_eta, ap_uint<10> isolation, ap_uint<2> number_eg) {
+    CaloTau(ap_uint<10> tau_et, ap_uint<6> peak_phi, ap_uint<6> peak_eta, ap_uint<10> isolation, ap_uint<2> number_eg) {
 
       data = (tau_et) |
-        (((ap_uint<32>) peak_phi)  << 10) |
-        (((ap_uint<32>) peak_eta)  << 15) |
-        (((ap_uint<32>) isolation) << 20) |
-        (((ap_uint<32>) number_eg) << 30);
+        (((ap_uint<34>) peak_phi)  << 10) |
+        (((ap_uint<34>) peak_eta)  << 16) |
+        (((ap_uint<34>) isolation) << 22) |
+        (((ap_uint<34>) number_eg) << 32);
     }
 
-    CaloTau(uint32_t i) {data = i;}
+    CaloTau(ap_uint<34> i) {data = i;}
 
     CaloTau& operator=(const CaloTau& rhs) {
       data = rhs.data;
       return *this;
     }
 
-    operator uint32_t() {return (uint32_t) data;}
+    operator ap_uint<34>() {return (ap_uint<34>) data;}
 
     ap_uint<10> tau_et(){return (data & 0x3FF);}
-    ap_uint<5>  peak_phi()  {return ((data >> 10) & 0x1F);}
-    ap_uint<5>  peak_eta()  {return ((data >> 15) & 0x1F);}
-    ap_uint<10> isolation() {return ((data >> 20) & 0x3FF);}
-    ap_uint<2>  number_eg() {return ((data >> 30) & 0x3);}
+    ap_uint<6>  peak_phi()  {return ((data >> 10) & 0x3F);}
+    ap_uint<6>  peak_eta()  {return ((data >> 16) & 0x3F);}
+    ap_uint<10> isolation() {return ((data >> 22) & 0x3FF);}
+    ap_uint<2>  number_eg() {return ((data >> 33) & 0x3);}
 
 #ifndef __SYNTHESIS__
     string toString() {
@@ -50,7 +50,7 @@ class CaloTau{
 #endif
 
 
-    ap_uint<32> data;
+    ap_uint<34> data;
 
 };
 
